@@ -1,0 +1,9 @@
+{
+  "name": "せっかちマウスの古物利益計算PRO",
+  "short_name": "古物利益PRO",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#172033",
+  "description": "仕入れ値・仕入れ手数料・販売価格・販売手数料・送料から利益を自動計算する古物市場向けアプリ"
+}
