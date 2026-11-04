@@ -219,48 +219,41 @@ input:focus{outline:3px solid #dbeafe;border-color:var(--blue)}
 .breakdown strong{font-size:13px}
 
 #mascotStage{
-  position:relative;height:0;overflow:visible;pointer-events:none;z-index:10;
+  position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));
+  height:auto;max-width:calc(100vw - 24px);overflow:visible;pointer-events:none;
+  z-index:9999;
 }
+.mascot-toast{
+  display:flex;align-items:flex-end;gap:7px;max-width:min(310px,calc(100vw - 24px));
+  padding:6px 10px 6px 5px;border:1px solid #dbe4ef;border-radius:18px;
+  background:rgba(255,255,255,.97);box-shadow:0 7px 24px #17203326;
+  transform-origin:bottom left;animation:toastIn .48s cubic-bezier(.18,.9,.25,1.2) both;
+}
+.mascot-toast.loss{border-color:#fecaca;background:#fffafa}
 .mascot{
-  position:absolute;left:50%;top:-8px;transform:translate(-50%,-100%) scale(.35);
-  width:min(230px,62vw);height:auto;opacity:0;
-  filter:drop-shadow(0 8px 10px #17203326);
+  display:block;flex:0 0 68px;width:68px;height:68px;object-fit:contain;
+  filter:drop-shadow(0 3px 4px #17203324);transform-origin:bottom center;
+  animation:mouseIdle .72s ease-in-out .45s 2;
 }
-.mascot.pop{
-  animation:mousePop .75s cubic-bezier(.2,1.35,.35,1) forwards;
+.mascot-toast.loss .mascot{animation:mouseWorry .22s ease-in-out .45s 5}
+.mascot-message{
+  align-self:center;font-size:12px;line-height:1.3;font-weight:900;color:#172033;
+  max-width:205px;overflow-wrap:anywhere;padding:2px 1px;
 }
-.mascot.lossPop{
-  animation:lossPop .8s ease-out forwards;
+.mascot-toast.loss .mascot-message{color:#b42318}
+.sparkles{font-size:13px;white-space:nowrap;align-self:flex-start;margin:1px 0 0 -5px;animation:sparkle .7s ease-out both}
+@keyframes toastIn{
+  0%{opacity:0;transform:translate(-28px,18px) scale(.72)}
+  68%{opacity:1;transform:translate(3px,-2px) scale(1.04)}
+  100%{opacity:1;transform:translate(0,0) scale(1)}
 }
-.mascot.hide{
-  animation:mouseHide .25s ease-in forwards;
-}
-@keyframes mousePop{
-  0%{opacity:0;transform:translate(-50%,-100%) scale(.25) rotate(-8deg)}
-  55%{opacity:1;transform:translate(-50%,-100%) scale(1.08) rotate(3deg)}
-  75%{transform:translate(-50%,-100%) scale(.94) rotate(-2deg)}
-  100%{opacity:1;transform:translate(-50%,-100%) scale(1) rotate(0)}
-}
-@keyframes lossPop{
-  0%{opacity:0;transform:translate(-50%,-100%) scale(.2) rotate(0)}
-  35%{opacity:1;transform:translate(-50%,-100%) scale(1.08) rotate(-7deg)}
-  50%{transform:translate(-50%,-100%) scale(1) rotate(7deg)}
-  65%{transform:translate(-50%,-100%) scale(1) rotate(-6deg)}
-  80%{transform:translate(-50%,-100%) scale(1) rotate(5deg)}
-  100%{opacity:1;transform:translate(-50%,-100%) scale(1) rotate(0)}
-}
-@keyframes mouseHide{
-  to{opacity:0;transform:translate(-50%,-100%) scale(.5)}
-}
-.sparkles{
-  position:absolute;left:50%;top:-120px;transform:translateX(-50%);
-  font-size:23px;white-space:nowrap;animation:spark .75s ease-out forwards;
-}
-@keyframes spark{
-  0%{opacity:0;transform:translate(-50%,25px) scale(.5)}
-  40%{opacity:1}
-  100%{opacity:0;transform:translate(-50%,-45px) scale(1.25)}
-}
+@keyframes mouseIdle{0%,100%{transform:rotate(0) translateY(0)}35%{transform:rotate(-5deg) translateY(-3px)}70%{transform:rotate(4deg) translateY(-1px)}}
+@keyframes mouseWorry{0%,100%{transform:rotate(0)}50%{transform:rotate(-7deg) translateX(-2px)}}
+@keyframes sparkle{0%{opacity:0;transform:scale(.4) rotate(-25deg)}45%{opacity:1}100%{opacity:0;transform:scale(1.2) rotate(20deg)}}
+.mascot-toast.hide{animation:toastOut .25s ease-in forwards}
+@keyframes toastOut{to{opacity:0;transform:translate(-12px,8px) scale(.92)}}
+@media(max-width:390px){.mascot{width:58px;height:58px;flex-basis:58px}.mascot-message{font-size:11px;max-width:calc(100vw - 115px)}}
+@media(prefers-reduced-motion:reduce){.mascot-toast,.mascot,.sparkles{animation:none!important}}
 .footer{text-align:center;color:var(--muted);font-size:10px;padding:16px 5px}
 @media(max-width:390px){
   main{padding-left:11px;padding-right:11px}
@@ -300,27 +293,39 @@ function showMascot(tier){
   stage.innerHTML="";
   if(!$("effectToggle").checked || tier==="none") return;
 
+  const messages={
+    loss:"マジで!!",
+    best:"最高！",
+    money:"お金は裏切らない",
+    work:"やるか！めっちゃやるか！"
+  };
+  const toast=document.createElement("div");
+  toast.className="mascot-toast"+(tier==="loss"?" loss":"");
   const img=document.createElement("img");
-  img.className="mascot " + (tier==="loss" ? "lossPop" : "pop");
-  img.alt="";
+  img.className="mascot";
+  img.alt="せっかちマウス";
   img.src=mascotImages[tier==="loss"?"shocked":tier];
-  stage.appendChild(img);
+  const message=document.createElement("div");
+  message.className="mascot-message";
+  message.textContent=messages[tier]||"やったね！";
+  toast.appendChild(img);
+  toast.appendChild(message);
+  stage.appendChild(toast);
 
   if(tier!=="loss"){
-    const spark=document.createElement("div");
+    const spark=document.createElement("span");
     spark.className="sparkles";
-    spark.textContent=tier==="work" ? "🔥🔥🔥" : tier==="money" ? "💰✨💰" : "✨🎉✨";
-    stage.appendChild(spark);
+    spark.textContent=tier==="work"?"🔥":tier==="money"?"💰✨":"✨";
+    toast.appendChild(spark);
   }
-
   clearTimeout(effectTimer);
   effectTimer=setTimeout(()=>{
     if(stage.firstElementChild){
-      stage.firstElementChild.classList.remove("pop","lossPop");
-      stage.firstElementChild.classList.add("hide");
-      setTimeout(()=>stage.innerHTML="",260);
+      stage.firstElementChild.classList.remove("mascot-toast");
+      stage.firstElementChild.classList.add("mascot-toast","hide");
+      setTimeout(()=>stage.innerHTML="",280);
     }
-  },2300);
+  },2100);
 }
 
 function update(){
@@ -349,23 +354,42 @@ function update(){
   box.classList.toggle("win",profit>=0);
   box.classList.toggle("loss",profit<0);
 
-  const tier=getTier(profit);
-  if(tier!==lastTier){
-    lastTier=tier;
-    showMascot(tier);
-  }
+  currentTier=getTier(profit);
 }
 
-["gCost","gBuyRate","gSale","gSellRate","gShipping"].forEach(id=>{
-  $(id).addEventListener("input",update);
+let currentTier="none";
+let lastShownTier="none";
+const fields=["gCost","gBuyRate","gSale","gSellRate","gShipping"];
+fields.forEach(id=>{
+  const field=$(id);
+  field.addEventListener("input",update);
+  // Enter (desktop) or leaving a changed field (mobile) commits the entry.
+  field.addEventListener("keydown",event=>{
+    if(event.key==="Enter"){
+      event.preventDefault();
+      update();
+      commitEffect();
+      field.blur();
+    }
+  });
+  field.addEventListener("change",()=>{
+    update();
+    commitEffect();
+  });
 });
+function commitEffect(){
+  if(currentTier!==lastShownTier){
+    lastShownTier=currentTier;
+    showMascot(currentTier);
+  }
+}
 
 $("effectToggle").addEventListener("change",()=>{
   $("effectState").textContent=$("effectToggle").checked?"ON":"OFF";
   if(!$("effectToggle").checked){
     $("mascotStage").innerHTML="";
   }else{
-    lastTier=null;
+    lastShownTier="none";
     update();
   }
 });
